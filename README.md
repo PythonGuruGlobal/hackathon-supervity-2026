@@ -1,191 +1,114 @@
-# Hackathon Supervity 2026
+# Agentic Market Data Forecaster & Alert Management System
 
-## Market Data Forecaster & Alert Agent (Agentic AI Project)
+Autonomous decisioning for market signals: forecast short-term moves, reason across multi-signal context, and choose when to alert, monitor, or stay silent. The focus is not just prediction but deciding whether a movement is actionable.
 
-### Problem Statement
+## Problem
 
-**Real-world pain**: In finance and fintech companies, market data flows continuously but humans cannot monitor everything. Most price movements are noise, yet missing critical signals causes losses, late decisions, and poor risk management.
+- Markets emit noisy, high-frequency signals (price, volume, sentiment, macro) that drown analysts in alerts.
+- Rule-based systems fire too often and ignore context; prediction-only tools give numbers without guidance.
+- The missing piece: a reasoning loop that asks, "Is this move important enough to act on?"
 
-**Example**: "The stock dropped 6% yesterday — why didn't anyone flag this earlier?"
+## Solution
 
-This project solves this by building an **AI agent that watches market data, forecasts movement, decides when something unusual is happening, and alerts with clear explanations**.
+An agentic pipeline that:
+- Forecasts next-day prices via time-series models (ARIMA/Prophet) with confidence.
+- Observes live daily data (Alpha Vantage) plus historical OHLCV, indicators, macro, and sentiment.
+- Reasons across signals using an AI agent (LangChain + LLM) to decide: NO ALERT, MONITOR, or ALERT.
+- Explains every decision in natural language, suppresses repetitive/low-confidence alerts, and learns from past actions.
 
-### What This Project Is
+## Architecture
 
-This is **not a trading bot** and **not just a prediction model**.
+Historical + Live Data → Forecasting Model → Agentic Decision Engine → Alert/Monitor/No Alert → Explanation → Memory for future decisions.
 
-It is an **agentic AI system** that:
-- ✅ Forecasts market movement using time-series models
-- ✅ Makes intelligent decisions using rule-based logic
-- ✅ Generates human-readable explanations using LLMs
-- ✅ Self-checks to avoid alert spam
-- ✅ Outputs actionable insights in production-ready format
+## Methodology
 
-**In one line**: "An AI agent that forecasts market movement, decides if something unusual or important is happening, and alerts with a clear explanation."
+1) **Data**: ~50k historical rows with OHLCV, RSI/MACD/SMA/Bollinger, macro (GDP, inflation, rates), sentiment scores; daily live updates via Alpha Vantage.
+2) **Forecasting**: ARIMA or Prophet predicts next-day close, emits predicted price and confidence.
+3) **Agentic Decision Loop** (Observe → Plan → Reason → Decide → Act → Reflect → Update Memory) weighing price % change, volume spikes, indicators, sentiment, forecast confidence, and past alerts.
+4) **Decisions**: NO ALERT, MONITOR (low severity), ALERT (high severity) with human-readable rationale.
+5) **Reflection & Memory**: suppress repetitive alerts, adapt thresholds, log outcomes for feedback.
 
-### System Architecture
+## Example Output
 
-```
-Market Data → Forecast Model → Agent Decision Logic → LLM Explanation → Alert Output
-```
-
-**Step-by-step flow**:
-
-1. **Data Input**: Historical stock data (Date, Open, High, Low, Close, Volume)
-2. **Forecasting**: ARIMA/Prophet predicts next-day price and trend
-3. **Decision Rules**: Agent evaluates if predicted changes meet alert thresholds
-4. **AI Explanation**: LLM generates context-aware reasoning for alerts
-5. **Self-Check**: Prevents repetitive/low-confidence alerts
-6. **Output**: Structured CSV/JSON + human-readable explanations
-
-### Dataset
-
-**Sample Market Data**: Historical stock prices with OHLCV format
-- Date, Open, High, Low, Close, Volume
-- Source: Yahoo Finance API or similar (sample data provided in `/data`)
-
-### Why This is Agentic AI
-
-This project exhibits all agent characteristics:
-
-| Agent Trait | Implementation |
-|-------------|----------------|
-| **Tool Usage** | Uses forecasting models as tools |
-| **Decision-Making** | Rule-based logic determines alert triggers |
-| **Conditional Actions** | Acts only when thresholds are met |
-| **Self-Checking** | Validates alerts before sending |
-| **Explanation** | LLM generates reasoning for decisions |
-
-The LLM is **not the boss** — it's the assistant. The agent orchestrates everything.
-
-### Key Features
-
-✅ **Time-series forecasting** (ARIMA/Prophet)  
-✅ **Multi-condition alert logic** (drop %, volatility spike, trend reversal)  
-✅ **LLM-powered explanations** (OpenAI/Gemini/Claude)  
-✅ **Alert deduplication** (prevents spam)  
-✅ **Production-ready output** (CSV/JSON format)  
-✅ **No UI required** (batch processing simulation)
-
-### Tech Stack
-
-- **Python 3.10+** - Core language
-- **Pandas** - Data manipulation
-- **Statsmodels/Prophet** - Time-series forecasting
-- **NumPy** - Mathematical operations
-- **LangChain** - LLM orchestration
-- **OpenAI/Gemini API** - Explanation generation
-- **Pydantic** - Data validation
-- **Jupyter** - Interactive exploration
-
-### Project Structure
-
-```
-.
-├── README.md              # This file
-├── GUIDELINES.md          # Hackathon rules
-├── requirements.txt       # Python dependencies
-├── data/
-│   └── sample_stock_data.csv  # Historical market data
-├── scripts/
-│   ├── forecaster.py      # ARIMA/Prophet forecasting
-│   ├── agent_logic.py     # Decision rules & self-check
-│   ├── llm_explainer.py   # LLM explanation generation
-│   ├── alert_system.py    # Alert output manager
-│   └── main_agent.py      # Main orchestrator
-├── notebooks/
-│   └── market_agent_demo.ipynb  # Interactive demo
-└── outputs/
-    ├── alerts.csv         # Alert records
-    └── alerts.json        # Structured output
-```
-
-### How to Run
-
-1. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-2. **Set API key** (for LLM explanations):
-   ```bash
-   set OPENAI_API_KEY=your-key-here
-   # or use .env file
-   ```
-
-3. **Run the agent**:
-   ```bash
-   python scripts/main_agent.py --data data/sample_stock_data.csv --output outputs/
-   ```
-
-4. **Explore in notebook**:
-   ```bash
-   jupyter notebook notebooks/market_agent_demo.ipynb
-   ```
-
-### Sample Output
-
-**Console**:
-```
-[2024-01-10] Analyzing stock data...
-[2024-01-10] Forecast: Price drop from 155 → 148 (-4.5%)
-[2024-01-10] ⚠️ ALERT TRIGGERED: High volatility + predicted drop
-[2024-01-10] Confidence: Medium
-```
-
-**alerts.json**:
 ```json
 {
-  "date": "2024-01-10",
-  "stock": "AAPL",
-  "alert": true,
-  "predicted_close": 148,
-  "actual_close": 155,
-  "drop_percent": 4.5,
-  "confidence": "medium",
-  "reason": "High volatility + predicted drop",
-  "explanation": "The forecast indicates a sharp 4.5% drop following increased volatility over the last 3 days. This suggests possible market uncertainty or reaction to external events."
+	"date": "2026-01-02",
+	"stock": "AAPL",
+	"decision": "MONITOR",
+	"severity": "LOW",
+	"reason": "Price declined with moderate confidence and similar alerts were triggered recently.",
+	"confidence": 0.71
 }
 ```
 
-### Evaluation & Guardrails
+## Technologies
 
-**Metrics**:
-- Forecast accuracy (RMSE, MAE)
-- Alert precision/recall
-- False positive rate
-- Explanation quality (human eval)
+- Python (Pandas, NumPy)
+- Time-series: statsmodels ARIMA / Prophet
+- Agent framework: LangChain + LLM (OpenAI/Claude/Gemini)
+- Data API: Alpha Vantage (daily)
+- Backend: FastAPI + Swagger UI (minimal UI optional)
+- Storage/Memory: CSV/JSON logs
 
-**Guardrails**:
-- Threshold validation (prevents oversensitive alerts)
-- Confidence scoring (suppresses low-confidence predictions)
-- Deduplication logic (avoids alert spam)
-- Rate limiting (max alerts per day)
+## Repository Layout
 
-### Limitations & Assumptions
+```
+agentic-market-alert/
+├── data/
+├── notebooks/
+├── ml/
+├── agent/
+├── llm/
+├── evaluation/
+├── outputs/
+├── README.md
+├── requirements.txt
+└── run_pipeline.py
+```
 
-- Uses historical data only (not real-time streaming)
-- Simplified alert rules (production would use ML-based anomaly detection)
-- Single-stock analysis (can be extended to portfolios)
-- LLM explanations are post-hoc (not causal analysis)
+## Setup
 
-### Innovation Highlights
+1) Install deps
+```bash
+pip install -r requirements.txt
+```
 
-🚀 **Agentic Architecture**: Not just prediction—decision-making + reasoning  
-🚀 **Self-Awareness**: Agent checks its own outputs before alerting  
-🚀 **Hybrid AI**: Combines statistical forecasting + LLM reasoning  
-🚀 **Production-Ready**: Designed for real ops teams, not demos
+2) Env vars
+```
+ALPHAVANTAGE_API_KEY=your_key
+OPENAI_API_KEY=your_llm_key
+```
 
-### Future Enhancements
+3) Run pipeline
+```bash
+python run_pipeline.py
+```
 
-- Real-time streaming data integration
-- Multi-asset portfolio monitoring
-- ML-based anomaly detection
-- Sentiment analysis from news/social media
-- Adaptive threshold learning
+4) API docs
+```bash
+uvicorn app:app --reload
+# then open Swagger UI at http://localhost:8000/docs
+```
 
----
+## Decision Logic (simplified)
 
-**Author**: Shaik Shaafiya  
-**Hackathon**: Supervity 2026  
-**Domain**: Finance + Agentic AI
+- Consider predicted move, % change vs prior close, volume anomaly, RSI/MACD regime, sentiment polarity, and confidence band.
+- If low confidence or recent duplicate alert → suppress.
+- If moderate signals → MONITOR; strong confluence → ALERT.
+- Log rationale + signals for traceability.
+
+## Evaluation & Guardrails
+
+- Forecast: MAE/RMSE.
+- Alert quality: precision/recall, false-positive reduction, alert frequency caps.
+- Confidence-based suppression; no trading or investment advice.
+- Reflection loop to de-duplicate and adjust context weights.
+
+## Demo
+
+A 10-minute narrated walkthrough is expected (screen recording with voice). Include the YouTube link here when ready.
+
+## Notes
+
+- This system is decision-focused, not an auto-trader.
+- Memory of past alerts reduces noise over time without retraining.
