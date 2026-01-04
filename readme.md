@@ -1,163 +1,341 @@
-CARE-AGENT
-Confidence-Aware Healthcare Triage Agent (Agentic AI)
+VECTRA – Health Assistant
+
+A Safety-Aware Retrieval-Augmented Healthcare AI System
+
+Overview
+
+VECTRA is an AI-powered healthcare decision-support system designed to demonstrate the responsible integration of traditional Machine Learning and Large Language Models (LLMs) in sensitive medical domains.
+
+Unlike conversational symptom checkers or chatbot-style medical assistants, VECTRA follows a guided, guarded, and explainable architecture. The system delivers structured, professional, and non-diagnostic health insights, making it suitable for academic, research, and demonstration purposes.
+
+VECTRA is not a diagnostic tool, not an autonomous agent, and not a replacement for healthcare professionals.
+
 Problem Statement
 
-Healthcare symptom checkers often suffer from overconfidence, lack of explainability, and unsafe automation, especially when powered purely by large language models.
-Blind predictions or chatbot-style responses can mislead users, increase risk, and reduce trust.
+Many AI-based healthcare assistants rely heavily on LLMs, leading to:
 
-Problem
+Overconfident or hallucinated medical advice
 
-How can we design an AI system that assists users responsibly by:
+Poor explainability of predictions
 
-Handling uncertainty explicitly
+Unsafe automation in high-risk domains
 
-Avoiding hallucinated medical advice
+Conversational outputs unsuitable for clinical settings
 
-Explaining reasoning clearly
+Pure LLM-driven systems behave like chatbots rather than decision-support tools, which reduces trust and increases risk in healthcare applications.
 
-Escalating instead of over-automating
+Proposed Solution
 
-Goal
+VECTRA introduces a safety-aware hybrid intelligence architecture that:
 
-Build a confidence-aware healthcare triage agent that behaves like a digital healthcare coworker, not a diagnostic tool.
+Separates deterministic prediction from generative explanation
 
-Dataset & Data Source
+Uses Machine Learning as the primary reasoning engine
 
-Dataset: Disease–Symptoms Dataset
-Source: Kaggle (public, non-PHI)
+Employs Retrieval-Augmented Generation (RAG) in a controlled manner
 
-Data Link:
-https://www.kaggle.com/datasets/choongqianzheng/disease-and-symptoms-dataset
+Enforces strict guardrails at architectural, prompt, and output levels
 
-Dataset Characteristics
+Degrades gracefully when LLM services are unavailable
 
-Tabular symptom–disease mapping
+The system prioritizes reliability, explainability, and safety over conversational flexibility.
 
-Binary / categorical symptom indicators
+Project Objectives
 
-Suitable for probabilistic classification and explainability
+Demonstrate responsible AI design in healthcare
+
+Maintain professional, clinical output tone
+
+Prevent over-reliance on LLMs
+
+Provide explainable and consistent results
+
+Enforce safety and ethical guardrails by design
+
+Support academic reproducibility and industry demos
+
+High-Level Architecture
+
+End-to-End Flow
+
+User-Provided Symptoms
+↓
+Symptom Encoding & Validation
+↓
+Machine Learning Prediction Layer
+↓
+Semantic Knowledge Retrieval (Vector Database)
+↓
+Guided RAG Explanation Layer (Optional LLM)
+↓
+Response Sanitization & Safety Checks
+↓
+Structured, Professional Output
+
+Core Components
+1. Machine Learning Prediction Layer
+
+Model: Random Forest Classifier
+
+Input: Structured symptom indicators
+
+Output:
+
+Probabilistic condition predictions
+
+Confidence-weighted results
+
+Purpose
+
+Fast, deterministic inference
+
+Explainable feature-based reasoning
+
+Eliminates hallucinations in core medical reasoning
+
+The ML layer remains independent of LLM availability.
+
+2. Knowledge Base & Vector Store
+
+Curated symptom–disease medical documents
+
+Text embeddings stored in Pinecone
+
+Semantic retrieval ensures context relevance
+
+Why Pinecone
+
+Production-ready vector database
+
+Low-latency semantic search
+
+Scalable and reliable
+
+This layer ensures all explanations are grounded in verified knowledge.
+
+3. Guided and Guarded RAG Pipeline
+
+VECTRA uses controlled RAG, not free-form generation.
+
+Retrieval
+
+Semantic search retrieves top relevant documents
+
+Context size strictly limited
+
+Prompt Guidance
+Prompts enforce:
+
+Clinical and educational tone
+
+No conversational language
+
+No emojis or markdown
+
+No diagnosis, treatment, or medication advice
+
+LLM Role
+
+Used only for explanation coherence
+
+Cannot introduce new medical facts
+
+Fully constrained by retrieved context
+
+4. Fail-Safe & Fallback Mechanism
+
+If:
+
+OPENAI_API_KEY is missing
+
+LLM service is unavailable
+
+LLM call fails
+
+Then:
+
+System falls back to retrieval-only responses
+
+No crashes or broken outputs
+
+Full functionality retained
+
+This ensures system reliability and reproducibility.
+
+5. Response Sanitization & Safety Layer
+
+Before output delivery:
+
+Responses are checked for unsafe claims
+
+Tone and structure are validated
+
+Consistency with ML predictions is enforced
+
+This aligns outputs with clinical communication standards.
+
+Guardrails & Safety Design
+
+VECTRA enforces multi-layer guardrails:
+
+Architectural Guardrails
+
+No autonomous diagnosis
+
+Decision-support only
+
+ML Guardrails
+
+Deterministic, explainable predictions
+
+No stochastic reasoning
+
+Retrieval Guardrails
+
+Curated, closed knowledge base
+
+No open internet access
+
+Prompt Guardrails
+
+Strict clinical language enforcement
+
+No conversational or chatbot tone
+
+Output Guardrails
+
+Structured, professional format
+
+No emojis or markdown
+
+Fail-Safe Guardrails
+
+LLM optionality
+
+Graceful degradation
+
+These guardrails make VECTRA aligned with Responsible AI principles.
+
+Key Features
+
+Hybrid ML + RAG architecture
+
+Safety-aware design
+
+Explainable predictions
+
+Professional, clinical outputs
+
+LLM-optional execution
+
+Fail-safe fallback behavior
+
+Academic and enterprise ready
+
+Dataset & Ethics
+
+Public, non-PHI symptom–disease datasets
 
 No personal or sensitive patient data
 
-This ensures ethical usage and reproducibility.
+Ethical and reproducible usage
 
-System Design (Agentic AI Architecture)
+Technology Stack
+Backend
 
-CARE-AGENT is designed as an Agentic AI decision-support system, not a chatbot.
+Python 3.9+
 
- High-Level Flow
-User Symptoms
-     ↓
-Symptom Encoding
-     ↓
-ML Prediction Engine
-     ↓
-Confidence Gate (Agent Decision)
-     ↓
-┌───────────────┬────────────────────┐
-│ High Confidence│ Low Confidence     │
-│ Direct Assist  │ Agentic RAG Reason │
-└───────────────┴────────────────────┘
-     ↓
-Ethics & Safety Guardrails
-     ↓
-Explainable, Human-Readable Output
+FastAPI
 
- Core Components
-1. ML Inference Engine
+Scikit-learn
 
-Trained classification model predicts Top-3 probable conditions
+Pinecone
 
-Outputs probability distribution and confidence score
+OpenAI API (optional)
 
-Ensures fast, deterministic reasoning
+Frontend
 
-2. Confidence Gate (Key Innovation)
+Node.js 16+
 
-The agent decides whether to act or escalate
+React / Vite
 
-Prevents blind reliance on AI
+Form-based UI (non-chat)
 
-Enables uncertainty-aware decision making
+Installation & Setup
+Clone Repository
+git clone https://github.com/your-username/vectra.git
+cd vectra
 
-3. Agentic RAG (Semantic Reasoning Layer)
+Backend Setup
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
 
-When confidence is low, the agent performs semantic retrieval from a vector database (e.g., Pinecone)
+Environment Configuration
 
-Retrieves disease descriptions and symptom relationships
+Create a .env file:
 
-Grounds LLM explanations in retrieved context
+PINECONE_API_KEY=your_pinecone_key
+PINECONE_INDEX_NAME=vectra-health
+OPENAI_API_KEY=optional_openai_key
 
-Reduces hallucinations and improves trust
+Knowledge Base Indexing
+python knowledge_base/build_kb.py
+python vector_store/indexer.py
 
-4. Explainability & Guardrails
+Frontend Setup
+cd ui/frontend
+npm install
+npm run dev
 
-Human-readable explanations
+Running the Application
+Backend
+python -m uvicorn api.vectra_api:app --reload
 
-Non-diagnostic language
+Frontend
+npm run dev
 
-Clear safety disclaimers
-
-Encourages professional consultation
-
- Key Features
-
-Top-3 probabilistic condition prediction
-
-Confidence-based AI routing (Agentic decision making)
-
- Agentic RAG with semantic search
-
- Explainable AI outputs
-
-Ethical and safety guardrails by design
-
- API-based Agent-as-a-Service architecture
-
- Assumptions & Limitations
+Assumptions & Limitations
 Assumptions
 
-Symptoms are self-reported and may be incomplete
+Symptoms are self-reported
 
-The system is used for informational purposes only
-
-Dataset patterns reasonably represent common symptom–disease relationships
+Used only for educational purposes
 
 Limitations
 
-Not a diagnostic or emergency system
+Not a diagnostic system
 
-Does not replace medical professionals
+Not an emergency tool
 
-Severity estimation is indicative, not clinical
+No treatment recommendations
 
-These constraints are explicitly documented to ensure Responsible AI usage.
- Why This Is Innovative
+These constraints are explicit by design.
 
-Uses confidence-aware Agentic AI, not blind automation
+Innovation Highlights
 
-Combines ML + Agentic RAG + guardrails
+Safety-first RAG, not blind LLM usage
 
-Handles uncertainty explicitly (rare in hackathon projects)
+Deterministic ML core
 
-Designed for expandability without refactor:
+Guardrails at every layer
 
-Telemedicine triage
+Professional healthcare-grade outputs
 
-Severity scoring
+Future Scope
+
+Confidence-aware routing (Agentic upgrade)
+
+Severity estimation
+
+Telemedicine triage support
 
 Public health analytics
 
-Regional disease trends
+Regional disease trend analysis
 
- Impact & Future Scope
+Disclaimer
 
-CARE-AGENT can evolve into:
-
-A telemedicine triage assistant
-
-A hospital decision-support tool
-
-A public health trend analysis agent
-
-The same architecture can be reused across multiple enterprise domains, aligning with Agents-as-a-Service platforms.
+VECTRA is intended strictly for educational, academic, and research purposes.
+It does not provide medical diagnosis, treatment, or emergency guidance.
+Users must consult qualified healthcare professionals for medical decisions.
