@@ -36,9 +36,7 @@ class DataManager:
             stocks = set()
             with open('stock_market_dataset.csv', 'r') as f:
                 reader = csv.DictReader(f)
-                for i, row in enumerate(reader):
-                    if i > 200:
-                        break
+                for row in reader:
                     stocks.add(row['Stock'])
             return sorted(list(stocks))
         except Exception as e:
@@ -229,6 +227,12 @@ class AgenticAlertSystem:
             'current_price': forecast['current_price'],
             'predicted_price': forecast['predicted_price']
         }
+        
+        # Add to session alert log
+        self.memory.append({
+            'timestamp': datetime.now().isoformat(),
+            'observations': observations
+        })
         
         return observations
     
