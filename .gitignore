@@ -50,8 +50,8 @@ chroma_db/
 *.sqlite
 *.sqlite3
 
-# Data files (uncomment if you don't want to commit large data files)
-# Data/
+# Data files (do not commit large datasets)
+Data/
 
 # Logs
 *.log
