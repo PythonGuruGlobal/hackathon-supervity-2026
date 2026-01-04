@@ -8,7 +8,7 @@ MedGuard solves this by using **Retrieval-Augmented Generation (RAG)** over **of
 
 ## Current Status
 
-🚧 **Active Development** - Currently implementing and optimizing the RAG pipeline with FDA drug label data. Core infrastructure (FastAPI backend, ChromaDB vector store, LangChain integration) is in place. Actively working on data ingestion, embedding generation, and safety validation features.
+🚧 **Active Development** - Core RAG backend is working end-to-end (FastAPI + LangChain + ChromaDB). Currently iterating on **data ingestion/chunking strategies** to maximize coverage and answer quality while keeping runtime/cost practical for demos (sampling, targeted drugs, richer FDA section extraction, and retrieval/debug tooling).
 
 ## Getting Started
 
@@ -66,6 +66,12 @@ This architecture ensures that every output is verifiable, explainable, and comp
 
 ## Screenshots
 
+### System architecture (RAG + safety-first pipeline)
+![Architecture flow](Screenshots/Flowchart.jpeg)
+
+### Optional workflow automation (n8n)
+![n8n workflow](Screenshots/n8n%20Workflow.jpeg)
+
 ### FastAPI docs (endpoints)
 ![FastAPI docs - endpoints](Screenshots/api-docs-endpoints.png)
 
@@ -83,4 +89,7 @@ Request/response schemas used by the API.
 ![Ask response example](Screenshots/testing/ask-response-example.png)
 
 Example response: **"This information is not available in the FDA drug label."**
+
+### JSON-only grounded response (successful case)
+![Proper JSON response](Screenshots/testing/proper_response.png)
 
