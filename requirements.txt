@@ -1,0 +1,50 @@
+# Market Data Forecaster & Alert Agent
+# Python Dependencies
+
+# Core Data Science
+pandas>=2.0.0
+numpy>=1.24.0
+scipy>=1.10.0
+
+# Time-series Forecasting
+statsmodels>=0.14.0
+prophet>=1.1.0  # Optional: uncomment if using Prophet
+
+# LLM & AI
+langchain>=0.1.0
+langchain-openai>=0.0.5
+openai>=1.0.0
+pydantic>=2.0.0
+
+# RAG (Retrieval-Augmented Generation)
+chromadb>=0.4.0  # Vector database
+sentence-transformers>=2.2.0  # Alternative embeddings
+tiktoken>=0.5.0  # Token counting for OpenAI
+
+# Visualization (for notebooks)
+matplotlib>=3.7.0
+seaborn>=0.12.0
+plotly>=5.14.0
+
+# Web Dashboard
+streamlit>=1.28.0
+flask>=2.3.0
+
+# Jupyter
+jupyter>=1.0.0
+ipykernel>=6.20.0
+ipywidgets>=8.0.0
+
+# Utilities
+python-dotenv>=1.0.0
+tqdm>=4.65.0
+requests>=2.31.0
+
+# Optional: Alternative LLM providers
+# langchain-google-genai>=0.0.5  # For Gemini
+# langchain-anthropic>=0.0.5  # For Claude
+
+# Development (optional)
+pytest>=7.4.0
+black>=23.0.0
+flake8>=6.0.0

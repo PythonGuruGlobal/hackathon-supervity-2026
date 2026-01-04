@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 Agentic Stock Market Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0a0a15 0%, #1a1a2e 50%, #16213e 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 20px;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+        }
+        
+        .header h1 {
+            font-size: 2.8em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .live-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background-color: #00ff00;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .control-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .control-panel h3 {
+            margin-bottom: 15px;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        input, select {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 15px;
+        }
+        
+        button {
+            padding: 12px 25px;
+            border-radius: 10px;
+            border: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        button.secondary {
+            background: linear-gradient(135deg, #00ff88 0%, #00d4aa 100%);
+        }
+        
+        .alert-panel {
+            background: linear-gradient(135deg, rgba(255, 0, 85, 0.1) 0%, rgba(255, 100, 0, 0.1) 100%);
+            border: 2px solid #ff0055;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .alert-panel.active {
+            animation: alertPulse 2s infinite;
+        }
+        
+        @keyframes alertPulse {
+            0%, 100% { border-color: #ff0055; }
+            50% { border-color: #ff6600; }
+        }
+        
+        .alert-item {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid #ff0055;
+        }
+        
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .metric-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-5px);
+            border-color: #667eea;
+        }
+        
+        .metric-label {
+            font-size: 0.85em;
+            color: #888;
+            margin-bottom: 8px;
+        }
+        
+        .metric-value {
+            font-size: 1.6em;
+            font-weight: 700;
+        }
+        
+        .metric-change {
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        
+        .positive { color: #00ff88; }
+        .negative { color: #ff0055; }
+        .neutral { color: #ffd700; }
+        
+        .chart-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .data-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 12px 25px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2em;
+            color: #888;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75em;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .badge.high { background: #ff0055; }
+        .badge.medium { background: #ffd700; color: #000; }
+        .badge.low { background: #888; }
+        
+        .forecast-panel {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border: 2px solid #667eea;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Agentic Stock Market Dashboard</h1>
+            <p>
+                <span class="live-indicator"></span>
+                Historical Dataset + Live API + AI Agent System
+            </p>
+        </div>
+        
+        <div class="controls">
+            <div class="control-panel">
+                <h3>📊 Dataset Stocks</h3>
+                <div class="input-group">
+                    <select id="datasetStock">
+                        <option value="">Loading stocks...</option>
+                    </select>
+                    <button onclick="loadHistorical()">Load Dataset</button>
+                </div>
+            </div>
+            
+            <div class="control-panel">
+                <h3>🔴 Live API Data</h3>
+                <div class="input-group">
+                    <input type="text" id="liveSymbol" placeholder="Enter symbol (e.g., AAPL)" value="AAPL">
+                    <button class="secondary" onclick="loadLive()">Load Live</button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="alertPanel" class="alert-panel" style="display:none;">
+            <h3>🚨 Active Alerts <span id="alertBadge" class="badge high">NEW</span></h3>
+            <div id="alertContent"></div>
+        </div>
+        
+        <div class="forecast-panel" id="forecastPanel" style="display:none;">
+            <h3>🔮 AI Forecast & Analysis</h3>
+            <div id="forecastContent"></div>
+        </div>
+        
+        <div class="data-tabs">
+            <div class="tab active" id="tab-historical" onclick="switchTab('historical')">
+                📊 Historical Dataset
+            </div>
+            <div class="tab" id="tab-live" onclick="switchTab('live')">
+                🔴 Live API Data
+            </div>
+        </div>
+        
+        <div id="lastUpdate" style="text-align:center; color:#888; margin-bottom:20px;"></div>
+        
+        <div id="errorMsg"></div>
+        
+        <div class="metrics" id="metrics"></div>
+        
+        <div class="chart-container">
+            <div id="priceChart"></div>
+        </div>
+        
+        <div class="chart-container">
+            <div id="volumeChart"></div>
+        </div>
+        
+        <div class="chart-container">
+            <h3>📜 Alert History</h3>
+            <div id="alertHistory"></div>
+        </div>
+    </div>
+    
+    <script>
+        let currentTab = 'historical';
+        let currentSymbol = 'AAPL';
+        let autoRefresh = true;
+        let refreshInterval = null;
+        
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab-' + tab).classList.add('active');
+        }
+        
+        async function loadDatasetStocks() {
+            try {
+                const response = await fetch('/api/dataset/stocks');
+                const result = await response.json();
+                
+                if (result.success) {
+                    const select = document.getElementById('datasetStock');
+                    select.innerHTML = result.stocks.map(s => 
+                        `<option value="${s}">${s}</option>`
+                    ).join('');
+                }
+            } catch (error) {
+                console.error('Error loading stocks:', error);
+            }
+        }
+        
+        async function loadHistorical() {
+            const symbol = document.getElementById('datasetStock').value;
+            if (!symbol) return;
+            
+            currentSymbol = symbol;
+            currentTab = 'historical';
+            switchTab('historical');
+            
+            try {
+                document.getElementById('errorMsg').innerHTML = 
+                    '<div class="loading">📊 Loading historical data...</div>';
+                
+                const response = await fetch(`/api/stock/${symbol}/historical`);
+                const result = await response.json();
+                
+                document.getElementById('errorMsg').innerHTML = '';
+                
+                if (!result.success) {
+                    throw new Error(result.error);
+                }
+                
+                updateDashboard(result);
+                
+            } catch (error) {
+                document.getElementById('errorMsg').innerHTML = 
+                    `<div style="color:#ff0055; text-align:center; padding:20px;">
+                        ❌ Error: ${error.message}
+                    </div>`;
+            }
+        }
+        
+        async function loadLive() {
+            const symbol = document.getElementById('liveSymbol').value.toUpperCase();
+            if (!symbol) return;
+            
+            currentSymbol = symbol;
+            currentTab = 'live';
+            switchTab('live');
+            
+            try {
+                document.getElementById('errorMsg').innerHTML = 
+                    '<div class="loading">🔴 Fetching live data...</div>';
+                
+                const response = await fetch(`/api/stock/${symbol}/live`);
+                const result = await response.json();
+                
+                document.getElementById('errorMsg').innerHTML = '';
+                
+                if (!result.success) {
+                    throw new Error(result.error);
+                }
+                
+                updateDashboard(result);
+                
+            } catch (error) {
+                document.getElementById('errorMsg').innerHTML = 
+                    `<div style="color:#ff0055; text-align:center; padding:20px;">
+                        ❌ Error: ${error.message}
+                    </div>`;
+            }
+        }
+        
+        function updateDashboard(result) {
+            const data = result.data;
+            
+            if (!data || data.length === 0) {
+                document.getElementById('errorMsg').innerHTML = 
+                    '<div style="color:#ff0055;">No data available</div>';
+                return;
+            }
+            
+            // Update timestamp
+            const lastUpdate = new Date(result.timestamp);
+            document.getElementById('lastUpdate').textContent = 
+                `Last updated: ${lastUpdate.toLocaleString()} | Source: ${result.source}`;
+            
+            // Calculate metrics
+            const latest = data[data.length - 1];
+            const first = data[0];
+            const high = Math.max(...data.map(d => d.high));
+            const low = Math.min(...data.map(d => d.low));
+            const totalVolume = data.reduce((sum, d) => sum + d.volume, 0);
+            
+            const change = latest.close - first.open;
+            const changePct = (change / first.open) * 100;
+            const changeClass = change >= 0 ? 'positive' : 'negative';
+            const changeSign = change >= 0 ? '+' : '';
+            
+            // Update metrics
+            document.getElementById('metrics').innerHTML = `
+                <div class="metric-card">
+                    <div class="metric-label">Current Price</div>
+                    <div class="metric-value">$${latest.close.toFixed(2)}</div>
+                    <div class="metric-change ${changeClass}">
+                        ${changeSign}${change.toFixed(2)} (${changeSign}${changePct.toFixed(2)}%)
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">High</div>
+                    <div class="metric-value positive">$${high.toFixed(2)}</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Low</div>
+                    <div class="metric-value negative">$${low.toFixed(2)}</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Open</div>
+                    <div class="metric-value">$${first.open.toFixed(2)}</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Volume</div>
+                    <div class="metric-value">${totalVolume.toLocaleString()}</div>
+                </div>
+            `;
+            
+            // Update alert panel
+            if (result.alert && result.alert.should_alert) {
+                const alert = result.alert;
+                document.getElementById('alertPanel').style.display = 'block';
+                document.getElementById('alertPanel').classList.add('active');
+                
+                const alertType = alert.alert_type.replace('AlertType.', '').replace('_', ' ').toUpperCase();
+                const confidenceBadge = alert.confidence.replace('ConfidenceLevel.', '').toLowerCase();
+                
+                document.getElementById('alertContent').innerHTML = `
+                    <div class="alert-item">
+                        <h4>🚨 ${alertType} <span class="badge ${confidenceBadge}">${alert.confidence}</span></h4>
+                        <p>${alert.reason}</p>
+                        <p style="font-size:0.85em; color:#888; margin-top:10px;">
+                            ${new Date(alert.timestamp).toLocaleString()}
+                        </p>
+                    </div>
+                `;
+            } else {
+                document.getElementById('alertPanel').style.display = 'none';
+            }
+            
+            // Update forecast panel
+            if (result.alert && result.alert.forecast) {
+                const forecast = result.alert.forecast;
+                const metrics = result.alert.metrics;
+                
+                document.getElementById('forecastPanel').style.display = 'block';
+                document.getElementById('forecastContent').innerHTML = `
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px;">
+                        <div>
+                            <div class="metric-label">Predicted Price</div>
+                            <div class="metric-value">$${forecast.predicted_value.toFixed(2)}</div>
+                            <div class="metric-change ${metrics.price_change_pct >= 0 ? 'positive' : 'negative'}">
+                                ${metrics.price_change_pct >= 0 ? '+' : ''}${metrics.price_change_pct.toFixed(2)}%
+                            </div>
+                        </div>
+                        <div>
+                            <div class="metric-label">Confidence</div>
+                            <div class="metric-value">${(forecast.confidence * 100).toFixed(0)}%</div>
+                        </div>
+                        <div>
+                            <div class="metric-label">Volatility</div>
+                            <div class="metric-value">${(metrics.volatility * 100).toFixed(2)}%</div>
+                        </div>
+                        <div>
+                            <div class="metric-label">Range</div>
+                            <div style="font-size:0.9em; color:#888;">
+                                $${forecast.lower_bound.toFixed(2)} - $${forecast.upper_bound.toFixed(2)}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Create charts
+            createPriceChart(data, result.symbol);
+            createVolumeChart(data);
+            loadAlertHistory();
+        }
+        
+        function createPriceChart(data, symbol) {
+            const priceTrace = {
+                x: data.map(d => d.time),
+                close: data.map(d => d.close),
+                high: data.map(d => d.high),
+                low: data.map(d => d.low),
+                open: data.map(d => d.open),
+                type: 'candlestick',
+                increasing: {line: {color: '#00ff88'}},
+                decreasing: {line: {color: '#ff0055'}},
+                name: 'Price'
+            };
+            
+            const layout = {
+                title: `${symbol} Price Chart`,
+                xaxis: {title: 'Time', color: '#888'},
+                yaxis: {title: 'Price ($)', color: '#888'},
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: {color: 'white'},
+                height: 500
+            };
+            
+            Plotly.newPlot('priceChart', [priceTrace], layout);
+        }
+        
+        function createVolumeChart(data) {
+            const colors = data.map(d => d.close >= d.open ? '#00ff88' : '#ff0055');
+            
+            const volumeTrace = {
+                x: data.map(d => d.time),
+                y: data.map(d => d.volume),
+                type: 'bar',
+                marker: {color: colors},
+                name: 'Volume'
+            };
+            
+            const layout = {
+                title: 'Volume',
+                xaxis: {title: 'Time', color: '#888'},
+                yaxis: {title: 'Volume', color: '#888'},
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: {color: 'white'},
+                height: 300
+            };
+            
+            Plotly.newPlot('volumeChart', [volumeTrace], layout);
+        }
+        
+        async function loadAlertHistory() {
+            try {
+                const response = await fetch('/api/alerts');
+                const result = await response.json();
+                
+                if (result.success && result.alerts.length > 0) {
+                    const html = result.alerts.reverse().slice(0, 10).map(alert => `
+                        <div class="alert-item" style="margin-bottom:10px;">
+                            <strong>${alert.alert_type}</strong>
+                            <span class="badge ${alert.confidence.toLowerCase()}">${alert.confidence}</span>
+                            <br>
+                            <span style="font-size:0.9em;">${alert.reason}</span>
+                            <br>
+                            <span style="font-size:0.75em; color:#888;">
+                                ${new Date(alert.timestamp).toLocaleString()}
+                            </span>
+                        </div>
+                    `).join('');
+                    
+                    document.getElementById('alertHistory').innerHTML = html;
+                } else {
+                    document.getElementById('alertHistory').innerHTML = 
+                        '<p style="color:#888; text-align:center;">No alerts yet</p>';
+                }
+            } catch (error) {
+                console.error('Error loading alerts:', error);
+            }
+        }
+        
+        // Initialize
+        document.getElementById('liveSymbol').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') loadLive();
+        });
+        
+        loadDatasetStocks();
+        loadHistorical();
+        
+        // Auto-refresh every 60 seconds
+        setInterval(() => {
+            if (currentTab === 'historical') {
+                loadHistorical();
+            } else {
+                loadLive();
+            }
+        }, 60000);
+    </script>
+</body>
+</html>
