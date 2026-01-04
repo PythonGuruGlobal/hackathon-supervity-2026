@@ -16,6 +16,11 @@ langchain-openai>=0.0.5
 openai>=1.0.0
 pydantic>=2.0.0
 
+# RAG (Retrieval-Augmented Generation)
+chromadb>=0.4.0  # Vector database
+sentence-transformers>=2.2.0  # Alternative embeddings
+tiktoken>=0.5.0  # Token counting for OpenAI
+
 # Visualization (for notebooks)
 matplotlib>=3.7.0
 seaborn>=0.12.0
@@ -23,6 +28,7 @@ plotly>=5.14.0
 
 # Web Dashboard
 streamlit>=1.28.0
+flask>=2.3.0
 
 # Jupyter
 jupyter>=1.0.0

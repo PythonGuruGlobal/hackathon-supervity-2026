@@ -13,6 +13,13 @@ try:
 except ImportError:
     LANGCHAIN_AVAILABLE = False
 
+# RAG system import (optional)
+try:
+    from rag_system import MarketRAGSystem
+    RAG_AVAILABLE = True
+except ImportError:
+    RAG_AVAILABLE = False
+
 
 @dataclass
 class ExplanationResult:
@@ -29,6 +36,8 @@ class LLMExplainer:
     
     This is what makes the system "agentic" - the LLM provides
     reasoning and context that pure statistical models cannot.
+    
+    NOW WITH RAG: Retrieves relevant historical context to enhance explanations.
     """
     
     def __init__(
@@ -36,7 +45,9 @@ class LLMExplainer:
         provider: str = "openai",
         model: str = "gpt-4o-mini",
         api_key: Optional[str] = None,
-        temperature: float = 0.3
+        temperature: float = 0.3,
+        use_rag: bool = True,
+        stock_symbol: str = "SAMPLE"
     ):
         """
         Initialize LLM explainer.
@@ -46,10 +57,14 @@ class LLMExplainer:
             model: Model name (e.g., "gpt-4o-mini", "gemini-pro")
             api_key: API key (if not set in environment)
             temperature: Temperature for generation (lower = more deterministic)
+            use_rag: Whether to use RAG for context retrieval
+            stock_symbol: Stock symbol for RAG context
         """
         self.provider = provider.lower()
         self.model = model
         self.temperature = temperature
+        self.stock_symbol = stock_symbol
+        self.use_rag = use_rag and RAG_AVAILABLE
         
         # Set API key
         if api_key:
@@ -57,6 +72,16 @@ class LLMExplainer:
         
         # Initialize LLM
         self.llm = self._initialize_llm()
+        
+        # Initialize RAG system if available
+        self.rag_system = None
+        if self.use_rag:
+            try:
+                self.rag_system = MarketRAGSystem(use_embeddings=False)
+                print("✓ RAG system integrated with LLM explainer")
+            except Exception as e:
+                print(f"⚠️ RAG system initialization failed: {e}")
+                self.use_rag = False
         
     def _initialize_llm(self):
         """Initialize the LLM based on provider."""
@@ -98,17 +123,30 @@ class LLMExplainer:
                 success=True
             )
         
+        # ENHANCEMENT: Retrieve RAG context if available
+        rag_context = None
+        if self.use_rag and self.rag_system:
+            try:
+                rag_context = self.rag_system.retrieve_context(
+                    current_metrics=decision.metrics,
+                    alert_type=decision.alert_type.value,
+                    stock_symbol=self.stock_symbol
+                )
+                print(f"✓ Retrieved RAG context (relevance: {rag_context.relevance_score:.2f})")
+            except Exception as e:
+                print(f"⚠️ RAG retrieval failed: {e}")
+        
         # Use LLM if available, otherwise use template
         if self.llm:
-            return self._generate_llm_explanation(decision, context)
+            return self._generate_llm_explanation(decision, context, rag_context)
         else:
             return self._generate_template_explanation(decision, context)
     
-    def _generate_llm_explanation(self, decision: AlertDecision, context: Dict) -> ExplanationResult:
-        """Generate explanation using LLM."""
+    def _generate_llm_explanation(self, decision: AlertDecision, context: Dict, rag_context = None) -> ExplanationResult:
+        """Generate explanation using LLM with optional RAG context."""
         try:
-            # Create prompt
-            prompt = self._build_prompt(decision, context)
+            # Create prompt (now includes RAG context)
+            prompt = self._build_prompt(decision, context, rag_context)
             
             # Call LLM
             messages = [
@@ -129,10 +167,11 @@ class LLMExplainer:
             print(f"⚠️ LLM call failed: {e}. Using fallback.")
             return self._generate_template_explanation(decision, context)
     
-    def _build_prompt(self, decision: AlertDecision, context: Dict) -> str:
-        """Build prompt for LLM."""
+    def _build_prompt(self, decision: AlertDecision, context: Dict, rag_context = None) -> str:
+        """Build prompt for LLM with RAG-enhanced context."""
         metrics = decision.metrics
         
+        # Base prompt
         prompt = f"""
 Explain the following market alert in simple, professional financial terms.
 
@@ -146,13 +185,24 @@ Explain the following market alert in simple, professional financial terms.
 - Percentage Change: {metrics.get('percent_change', 0):+.2f}%
 - Current Volatility: {metrics.get('volatility', 0):.4f}
 - Trend: {metrics.get('trend', 'unknown')}
+"""
+        
+        # Add RAG-retrieved context if available
+        if rag_context and rag_context.relevance_score > 0.3:
+            prompt += f"\n**Retrieved Historical Context:**\n"
+            prompt += self.rag_system.format_context_for_llm(rag_context)
+            prompt += f"\n\n(Context relevance: {rag_context.relevance_score:.0%})"
+        
+        # Add instructions
+        prompt += """
 
 **Instructions**:
 1. Explain why this alert was triggered in 2-3 sentences
 2. Provide context about what this means for market participants
-3. Mention potential causes (volatility, trend changes, magnitude)
-4. Keep it professional but accessible
-5. Do NOT give investment advice
+3. If historical patterns are provided above, reference them briefly
+4. Mention potential causes (volatility, trend changes, magnitude)
+5. Keep it professional but accessible
+6. Do NOT give investment advice
 
 Write a clear, concise explanation:
 """
