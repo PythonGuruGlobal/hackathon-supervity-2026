@@ -64,6 +64,12 @@ This architecture ensures that every output is verifiable, explainable, and comp
 
 7. The final answer is returned as a JSON response with citations and confidence.
 
+## Future Innovations
+
+- **Adherence + escalation workflow**: reminders + missed-dose logic (label-only) and an optional escalation workflow (email/SMS) when high-risk keywords appear.
+- **Dose Safety Engine (label-first)**: parse dose limits, frequency, max daily dose, food/alcohol rules from labels and return a structured “safe/unsafe + why” verdict with citations.
+- **Multilingual label-grounded mode**: translate retrieved FDA text first, then answer in the user’s language while keeping citations to the original English sections.
+
 ## Screenshots
 
 ### System architecture (RAG + safety-first pipeline)
