@@ -8,7 +8,7 @@ MedGuard solves this by using **Retrieval-Augmented Generation (RAG)** over **of
 
 ## Current Status
 
-🚧 **Active Development** - Core RAG backend is working end-to-end (FastAPI + LangChain + ChromaDB). Currently iterating on **data ingestion/chunking strategies** to maximize coverage and answer quality while keeping runtime/cost practical for demos (sampling, targeted drugs, richer FDA section extraction, and retrieval/debug tooling).
+✅ **Working MVP** - Core RAG backend is working end-to-end (FastAPI + LangChain + ChromaDB). All API endpoints (`/ask`, `/validate`, `/schedule`) are returning the expected JSON responses, and ingestion/chunking has been tuned to improve FDA-label coverage and answer quality.
 
 ## Getting Started
 
@@ -81,15 +81,4 @@ Swagger UI showing the available endpoints: `/ask`, `/validate`, `/schedule`.
 ![FastAPI docs - schemas](Screenshots/api-docs-schemas.png)
 
 Request/response schemas used by the API.
-
-### Testing `/ask` in Swagger UI
-![Ask request body](Screenshots/testing/ask-request-body.png)
-
-### Grounded behavior when label text is not found
-![Ask response example](Screenshots/testing/ask-response-example.png)
-
-Example response: **"This information is not available in the FDA drug label."**
-
-### JSON-only grounded response (successful case)
-![Proper JSON response](Screenshots/testing/proper_response.png)
 
